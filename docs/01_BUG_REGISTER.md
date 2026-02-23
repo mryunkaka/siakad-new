@@ -45,9 +45,13 @@
 
 ### BUG-004
 - Severity: Medium
-- Status: Open
+- Status: Fixed
 - Module: Laporan/Nilai
 - File: `application/controllers/Laporan_nilai.php`, `application/controllers/Nilai.php`
 - Symptom: Banyak raw SQL manual, sulit maintain saat migrasi CI4.
 - Root Cause: query belum distandarisasi repository/model layer.
-- Fix Plan: Pindah query ke model + parameter binding.
+- Fix: Refactor query utama ke Query Builder, hilangkan akses langsung `$_GET/$_POST` di endpoint update nilai, tambahkan cast ID numerik.
+- Verification:
+  - `php -l application/controllers/Nilai.php` -> lolos.
+  - `php -l application/controllers/Laporan_nilai.php` -> lolos.
+  - Halaman daftar kelas nilai + list siswa laporan tetap dapat memuat data tanpa raw SQL concatenation.

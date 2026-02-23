@@ -4,7 +4,7 @@
 - [x] Perbaiki SQL menu saat `id_level_user` kosong.
 - [x] Tambah guard akses menu pada helper.
 - [x] Refactor semua raw SQL berisiko di controller `Jadwal`.
-- [ ] Refactor raw SQL `Nilai` dan `Laporan_nilai`.
+- [x] Refactor raw SQL `Nilai` dan `Laporan_nilai`.
 - [ ] Aktifkan logging CI (`log_threshold`) untuk staging.
 - [ ] Buat data seed minimal untuk uji CRUD otomatis.
 
