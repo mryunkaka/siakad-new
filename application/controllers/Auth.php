@@ -33,6 +33,18 @@
 
 					// $this->session->set_userdata($loginUser); -> maksudnya mengset userdata yang mana datanya diambil dari $loginUser
 					$this->session->set_userdata($loginUser);
+
+					// Untuk beberapa role (mis. Guru/Wali Kelas) data guru dipakai di modul lain.
+					// Jika user login dari tbl_user tapi belum ada id_guru di session, coba hubungkan via username di tbl_guru.
+					$idLevel = isset($loginUser['id_level_user']) ? (int) $loginUser['id_level_user'] : 0;
+					if (($idLevel === 2 || $idLevel === 3) && empty($this->session->userdata('id_guru')))
+					{
+						$guru = $this->db->get_where('tbl_guru', array('username' => $loginUser['username']))->row_array();
+						if ( ! empty($guru) && ! empty($guru['id_guru']))
+						{
+							$this->session->set_userdata(array('id_guru' => (int) $guru['id_guru']));
+						}
+					}
 					redirect('tampilan_utama');
 
 				} elseif (!empty($loginGuru)) {

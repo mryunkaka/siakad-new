@@ -429,6 +429,13 @@ class CI_Output {
 		// --------------------------------------------------------------------
 
 		// Set the output data
+		// PHP 8.4+ deprecates passing NULL to str_replace() below.
+		// Some integrations may call _display(NULL), so normalize it.
+		if ($output === NULL)
+		{
+			$output = '';
+		}
+
 		if ($output === '')
 		{
 			$output =& $this->final_output;
@@ -454,6 +461,8 @@ class CI_Output {
 		if ($this->parse_exec_vars === TRUE)
 		{
 			$memory	= round(memory_get_usage() / 1024 / 1024, 2).'MB';
+			// PHP 8.4+ deprecates NULL passed as subject to str_replace().
+			$output === NULL && $output = '';
 			$output = str_replace(array('{elapsed_time}', '{memory_usage}'), array($elapsed, $memory), $output);
 		}
 

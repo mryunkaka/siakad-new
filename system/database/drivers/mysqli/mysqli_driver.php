@@ -134,6 +134,10 @@ class CI_DB_mysqli_driver extends CI_DB {
 		$client_flags = ($this->compress === TRUE) ? MYSQLI_CLIENT_COMPRESS : 0;
 		$this->_mysqli = mysqli_init();
 
+		// PHP 8.1+ may throw mysqli_sql_exception depending on mysqli_report settings.
+		// CodeIgniter expects connection errors to be handled via FALSE return values.
+		function_exists('mysqli_report') && mysqli_report(MYSQLI_REPORT_OFF);
+
 		$this->_mysqli->options(MYSQLI_OPT_CONNECT_TIMEOUT, 10);
 
 		if (isset($this->stricton))
@@ -198,7 +202,17 @@ class CI_DB_mysqli_driver extends CI_DB {
 			}
 		}
 
-		if ($this->_mysqli->real_connect($hostname, $this->username, $this->password, $this->database, $port, $socket, $client_flags))
+		try
+		{
+			$connected = $this->_mysqli->real_connect($hostname, $this->username, $this->password, $this->database, $port, $socket, $client_flags);
+		}
+		catch (mysqli_sql_exception $e)
+		{
+			log_message('error', $e->getMessage());
+			return FALSE;
+		}
+
+		if ($connected)
 		{
 			// Prior to version 5.7.3, MySQL silently downgrades to an unencrypted connection if SSL setup fails
 			if (

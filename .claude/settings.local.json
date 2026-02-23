@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(mysql:*)",
-      "Bash(echo Apache restart attempted:*)",
-      "Bash(echo Folder created:*)"
-    ]
-  }
-}

@@ -205,9 +205,9 @@ body{
 $level = $this->session->userdata('id_level_user');
 switch($level){
     case 1: $role="Administrator"; break;
-    case 2: $role="Guru"; break;
-    case 3: $role="Wali Kelas"; break;
-    case 4: $role="Siswa"; break;
+    case 2: $role="Wali Kelas"; break;
+    case 3: $role="Guru"; break;
+    case 4: $role="Keuangan"; break;
     default: $role="Pengguna Sistem";
 }
 ?>
@@ -298,13 +298,16 @@ switch($level){
 </li>
 
 <?php
-$id_level_user = $this->session->userdata('id_level_user');
+$id_level_user = (int) $this->session->userdata('id_level_user');
+$main_menu = array();
+if ($id_level_user > 0)
+{
+	$sql_menu = "SELECT * FROM tabel_menu WHERE id IN
+	(SELECT id_menu FROM tbl_user_rule WHERE id_level_user = $id_level_user)
+	AND is_main_menu = 0";
 
-$sql_menu = "SELECT * FROM tabel_menu WHERE id IN
-(SELECT id_menu FROM tbl_user_rule WHERE id_level_user = $id_level_user)
-AND is_main_menu = 0";
-
-$main_menu = $this->db->query($sql_menu)->result();
+	$main_menu = $this->db->query($sql_menu)->result();
+}
 
 foreach ($main_menu as $main){
 

@@ -6,7 +6,7 @@
 		function __construct()
 		{
 			parent::__construct();
-			//checkAksesModule();
+			checkAksesModule();
 			$this->load->library('ssp');
 			//$this->load->model();
 		}
@@ -54,9 +54,11 @@
 		    $where = "tahun_akademik='".get_tahun_akademik('tahun_akademik')."'";
 
 		    // karena memasukan parameter $where maka meggunakan ssp::complex bukan yang simple lagi
-		    echo json_encode(
-		     	SSP::complex($_GET, $sql_details, $table, $primaryKey, $columns, $where)
-		     );
+		    $this->output
+		    	->set_content_type('application/json', 'utf-8')
+		    	->set_output(json_encode(
+		    		SSP::complex($_GET, $sql_details, $table, $primaryKey, $columns, $where)
+		    	));
 
 		}
 

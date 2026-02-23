@@ -7,7 +7,7 @@
 		function __construct() 
 		{
 			parent::__construct();
-			//checkAksesModule();
+			checkAksesModule();
 			$this->load->library('ssp');
 			$this->load->model('model_siswa');
 		}
@@ -50,9 +50,11 @@
 				'host' => $this->db->hostname
 		    );
 
-		    echo json_encode(
-		     	SSP::simple($_GET, $sql_details, $table, $primaryKey, $columns)
-		     );
+		    $this->output
+		    	->set_content_type('application/json', 'utf-8')
+		    	->set_output(json_encode(
+		    		SSP::simple($_GET, $sql_details, $table, $primaryKey, $columns)
+		    	));
 
 		}
 

@@ -2,6 +2,12 @@
 
 	class Tampilan_utama extends CI_Controller
 	{
+
+		function __construct()
+		{
+			parent::__construct();
+			checkAksesModule();
+		}
 		
 		function index()
 		{

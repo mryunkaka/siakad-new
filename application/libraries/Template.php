@@ -1,6 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Template {
+		public $CI;
 		var $template_data = array();
 		
 		function set($name, $value)
@@ -11,6 +12,11 @@ class Template {
 		function load($template = '', $view = '' , $view_data = array(), $return = FALSE)
 		{               
 			$this->CI =& get_instance();
+			if ($template === 'template' && empty($this->CI->session->userdata('id_level_user')))
+			{
+				redirect('auth/');
+				return;
+			}
 			$this->set('contents', $this->CI->load->view($view, $view_data, TRUE));			
 			return $this->CI->load->view($template, $this->template_data, $return);
 		}
