@@ -9,12 +9,12 @@
             <!-- /.box-header -->
             <div class="box-body">
 
-            <!-- button add -->
-            <?php
-                echo anchor('siswa/add', '<button class="btn bg-navy btn-flat margin">Tambah Data</button>');
-                echo anchor('siswa/form', '<button class="btn btn-warning btn-flat margin">Import Data</button>');
-                echo anchor('siswa/naik_kelas', '<button class="btn btn-info btn-flat margin">Naik Kelas</button>');
-            ?>
+	            <!-- button add -->
+	            <?php
+	                echo anchor('siswa/add', '<button class="btn bg-navy btn-flat margin">Tambah Data</button>');
+	                echo '<button type="button" class="btn btn-warning btn-flat margin" data-toggle="modal" data-target="#modalImportSiswa">Import Data</button>';
+	                echo anchor('siswa/naik_kelas', '<button class="btn btn-info btn-flat margin">Naik Kelas</button>');
+	            ?>
 
               <table id="mytable" class="table table-striped table-bordered table-hover table-full-width dataTable" cellspacing="0" width="100%">
                 <thead>
@@ -94,10 +94,12 @@
                 ]
             } );
                
-            t.on( 'order.dt search.dt', function () {
-                t.column(0, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
-                    cell.innerHTML = i+1;
-                } );
-            } ).draw();
-        } );
-</script>
+	            t.on( 'order.dt search.dt', function () {
+	                t.column(0, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+	                    cell.innerHTML = i+1;
+	                } );
+	            } ).draw();
+	        } );
+	</script>
+
+	<?php $this->load->view('siswa/_import_excel_modal'); ?>

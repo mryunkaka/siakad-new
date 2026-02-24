@@ -57,7 +57,10 @@ INSERT INTO `tabel_menu` (`id`, `nama_menu`, `link`, `icon`, `is_main_menu`) VAL
 (15, 'Menu', 'menu', 'fa fa-list', 0),
 (16, 'Form Pembayaran', 'pembayaran', 'fa fa-dollar', 0),
 (17, 'Nilai', 'nilai', 'fa fa-archive', 0),
-(18, 'Laporan Nilai', 'laporan_nilai', 'fa fa-file-pdf-o', 0);
+(18, 'Laporan Nilai', 'laporan_nilai', 'fa fa-file-pdf-o', 0),
+(19, 'Wali Kelas', '#', 'fa fa-graduation-cap', 0),
+(20, 'Portal Wali Kelas', 'portal_walikelas', 'fa fa-dashboard', 19),
+(21, 'Siswa Kelas', 'wk_siswa', 'fa fa-users', 19);
 
 -- --------------------------------------------------------
 
@@ -512,7 +515,11 @@ INSERT INTO `tbl_user_rule` (`id_rule`, `id_menu`, `id_level_user`) VALUES
 (17, 11, 3),
 (19, 17, 3),
 (20, 18, 3),
-(21, 12, 3);
+(21, 12, 3),
+(22, 19, 2),
+(23, 20, 2),
+(24, 21, 2),
+(25, 18, 2);
 
 -- --------------------------------------------------------
 
@@ -745,7 +752,7 @@ ALTER TABLE `tbl_walikelas`
 -- AUTO_INCREMENT for table `tabel_menu`
 --
 ALTER TABLE `tabel_menu`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `tbl_guru`
@@ -805,7 +812,7 @@ ALTER TABLE `tbl_user`
 -- AUTO_INCREMENT for table `tbl_user_rule`
 --
 ALTER TABLE `tbl_user_rule`
-  MODIFY `id_rule` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id_rule` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `tbl_walikelas`

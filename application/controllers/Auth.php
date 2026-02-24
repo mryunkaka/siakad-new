@@ -21,11 +21,31 @@
 				
 				$username	= $this->input->post('username');
 				$password 	= $this->input->post('password');
-				// proses pengecekan username dan password di database beradi di model_user dengan memparsing $username dan $password
-				// $loginUser untuk mengecek user pada tbl_user sedangkan $loginGuru memerika ke dalam tbl_guru
-				$loginUser		= $this->model_user->login($username, $password);
 
+				// Validasi username/password agar pesan error lebih jelas.
+				$userByUsername = $this->db->get_where('tbl_user', array('username' => $username))->row_array();
+				$guruByUsername = $this->db->get_where('tbl_guru', array('username' => $username))->row_array();
+
+				if (empty($userByUsername) && empty($guruByUsername))
+				{
+					$this->session->unset_userdata('success');
+					$this->session->set_flashdata('error', 'Username tidak terdaftar.');
+					redirect('auth');
+					return;
+				}
+
+				// proses pengecekan username dan password di database berada di model_user / model_guru
+				$loginUser		= $this->model_user->login($username, $password);
 				$loginGuru  	= $this->model_guru->login($username, $password);
+
+				// Username ada tapi password salah
+				if (empty($loginUser) && empty($loginGuru))
+				{
+					$this->session->unset_userdata('success');
+					$this->session->set_flashdata('error', 'Password salah.');
+					redirect('auth');
+					return;
+				}
 				
 				// $loginUser-> mengambil nilai dari $user yang ada di function login pada model_user, apabila data salah maka user tidak berisi dan $loginUser menjadi kosong
 				// apablia $loginUser tidak kosong (memiliki data) maka akan membuat session dan redirect ke tampilan_utama
@@ -45,6 +65,8 @@
 							$this->session->set_userdata(array('id_guru' => (int) $guru['id_guru']));
 						}
 					}
+					$this->session->unset_userdata('error');
+					$this->session->set_flashdata('success', 'Login berhasil.');
 					redirect('tampilan_utama');
 
 				} elseif (!empty($loginGuru)) {
@@ -57,12 +79,18 @@
 					);
 					// $this->session->set_userdata($sessionGuru); -> maksudnya mengset userdata yang mana datanya diambil dari $sessionGuru
 					$this->session->set_userdata($sessionGuru);
+					$this->session->unset_userdata('error');
+					$this->session->set_flashdata('success', 'Login berhasil.');
 					redirect('tampilan_utama');
 
 				} else {
+					$this->session->unset_userdata('success');
+					$this->session->set_flashdata('error', 'Login gagal.');
 					redirect('auth');
 				}
 			} else {
+				$this->session->unset_userdata('success');
+				$this->session->set_flashdata('error', 'Silakan login terlebih dahulu.');
 				redirect('auth');
 			}
 		}

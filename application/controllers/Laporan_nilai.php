@@ -19,10 +19,11 @@
 				return;
 			}
 
-			$walikelas 		= $this->db->get_where('tbl_walikelas', array('id_guru' => $idGuru))->row_array();
+			$idTahunAkademik = (int) get_tahun_akademik('id_tahun_akademik');
+			$walikelas 		= $this->db->get_where('tbl_walikelas', array('id_guru' => $idGuru, 'id_tahun_akademik' => $idTahunAkademik))->row_array();
 			if (empty($walikelas) || empty($walikelas['kd_kelas']))
 			{
-				$this->session->set_flashdata('error', 'Data wali kelas tidak ditemukan atau belum memiliki kelas.');
+				$this->session->set_flashdata('error', 'Anda belum terdaftar sebagai wali kelas pada tahun akademik aktif.');
 				redirect('tampilan_utama');
 				return;
 			}
@@ -37,7 +38,7 @@
 
 			$data['kelas']  = $this->db->query($kelas)->row_array();
 			$data['siswa'] 	= $this->db->query($siswa);
-			$this->template->load('template', 'Laporan_nilai/list_siswa', $data);
+			$this->template->load('template', 'laporan_nilai/list_siswa', $data);
 		}
 
 

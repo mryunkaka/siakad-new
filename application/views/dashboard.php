@@ -189,7 +189,7 @@ $progress = getProgress($jam,$masuk1,$pulang);
     <div class="row">
         <div class="col-md-8 col-xs-8">
             <div class="welcome-title">
-                Selamat Datang, <?php echo $this->session->userdata('nama'); ?>
+                Selamat Datang, <?php echo $this->session->userdata('nama_lengkap'); ?>
             </div>
             <div class="welcome-sub">
                 Sistem Informasi Akademik Sekolah

@@ -127,6 +127,22 @@
 			$this->db->update('tbl_jadwal', array('jam' => $jamnya));
 		}
 
+		function delete_dataJadwal()
+		{
+			$idjadwal = (int) $this->uri->segment(3);
+			if ($idjadwal <= 0)
+			{
+				show_404();
+				return;
+			}
+
+			$this->db->where('id_jadwal', $idjadwal);
+			$this->db->delete('tbl_jadwal');
+
+			$this->session->set_flashdata('success', 'Data jadwal berhasil dihapus.');
+			redirect('jadwal');
+		}
+
 		function tampil_kelas()
 		{
 			echo "<select id='kelas' name='kelas' class='form-control' onChange='loadPelajaran()'>";
@@ -148,44 +164,95 @@
 		}
 
 		function cetak_jadwal() {
-	 		$kelas = $_POST['kelas'];
+	 		$kelas = $this->input->post('kelas', TRUE);
+	 		$kdJurusan = $this->input->post('jurusan', TRUE);
+	 		$kdTingkatan = $this->input->post('tingkatan_kelas', TRUE);
+
+	 		if (empty($kelas))
+	 		{
+	 			$this->session->set_flashdata('error', 'Kelas belum dipilih.');
+	 			redirect('jadwal');
+	 			return;
+	 		}
+
 	 		$this->load->library('CFPDF');
 
-	 		$days            = array(
-								'SENIN'  => 'SENIN',
-								'SELASA' => 'SELASA',
-								'RABU'   => 'RABU',
-								'KAMIS'  => 'KAMIS',
-								'JUMAT'  => 'JUMAT',
-								'SABTU'  => 'SABTU'
-							 );
+	 		$sql = "SELECT tj.id_jadwal, tm.nama_mapel, tg.nama_guru, tr.nama_ruangan, tj.hari, tj.jam
+	 				FROM tbl_jadwal tj
+	 				JOIN tbl_mapel tm ON tj.kd_mapel = tm.kd_mapel
+	 				LEFT JOIN tbl_guru tg ON tj.id_guru = tg.id_guru
+	 				LEFT JOIN tbl_ruangan tr ON tj.kd_ruangan = tr.kd_ruangan
+	 				WHERE tj.kd_kelas = ?";
+	 		$params = array($kelas);
 
-	 		$pdf = new FPDF('L', 'mm', 'A4');
+	 		if ( ! empty($kdJurusan))
+	 		{
+	 			$sql .= " AND tj.kd_jurusan = ?";
+	 			$params[] = $kdJurusan;
+	 		}
+	 		if ( ! empty($kdTingkatan))
+	 		{
+	 			$sql .= " AND tj.kd_tingkatan = ?";
+	 			$params[] = $kdTingkatan;
+	 		}
+
+	 		// Order: hari kosong di bawah, lalu urutan hari, lalu jam.
+	 		$sql .= " ORDER BY
+	 			CASE WHEN tj.hari IS NULL OR tj.hari = '' THEN 2 ELSE 1 END,
+	 			FIELD(tj.hari, 'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'),
+	 			CASE WHEN tj.jam IS NULL OR tj.jam = '' THEN 2 ELSE 1 END,
+	 			tj.jam ASC";
+
+	 		$rows = $this->db->query($sql, $params)->result_array();
+
+	 		$kelasRow = $this->db->get_where('tbl_kelas', array('kd_kelas' => $kelas))->row_array();
+	 		$namaKelas = $kelasRow['nama_kelas'] ?? $kelas;
+
+	 		$pdf = new FPDF('P', 'mm', 'A4');
 	 		$pdf->AddPage();
 	 		$pdf->SetFont('Arial','B',12);
-        	$pdf->Cell(10,10,'NO',1,0,'L');
-        	$pdf->Cell(30,10,'WAKTU',1,0,'L');
+	 		$pdf->Cell(190,7,'JADWAL PELAJARAN',0,1,'C');
+	 		$pdf->SetFont('Arial','',10);
+	 		$pdf->Cell(190,6,'Kelas: '.$namaKelas.' | Tahun Akademik Aktif: '.get_tahun_akademik('tahun_akademik').' | Semester Aktif: '.get_tahun_akademik('semester'),0,1,'C');
+	 		$pdf->Ln(2);
 
-        	foreach ($days as $day) {
-        		$pdf->Cell(40,10,$day,1,0,'L');
-        	}
-        	$pdf->Cell(30,10,'',0,1,'L');
+	 		$pdf->SetFont('Arial','B',9);
+	 		$pdf->Cell(10,7,'NO',1,0,'C');
+	 		$pdf->Cell(55,7,'MATA PELAJARAN',1,0,'C');
+	 		$pdf->Cell(45,7,'GURU',1,0,'C');
+	 		$pdf->Cell(30,7,'RUANGAN',1,0,'C');
+	 		$pdf->Cell(25,7,'HARI',1,0,'C');
+	 		$pdf->Cell(25,7,'JAM',1,1,'C');
 
-        	$jam_ajar = $this->model_jadwal->jamPelajaran();
-        	$no=1;
+	 		$pdf->SetFont('Arial','',9);
+	 		$no = 1;
+	 		foreach ($rows as $r)
+	 		{
+	 			$namaMapel = (string) ($r['nama_mapel'] ?? '-');
+	 			$namaGuru = (string) ($r['nama_guru'] ?? '-');
+	 			if ($namaGuru === '') { $namaGuru = '-'; }
+	 			$namaRuangan = (string) ($r['nama_ruangan'] ?? '-');
+	 			if ($namaRuangan === '') { $namaRuangan = '-'; }
+	 			$hari = (string) ($r['hari'] ?? '-');
+	 			if ($hari === '') { $hari = '-'; }
+	 			$jam = (string) ($r['jam'] ?? '-');
+	 			if ($jam === '') { $jam = '-'; }
 
-        	foreach ($jam_ajar as $jam) {
-        		$pdf->Cell(10,10,$no,1,0,'L');
-            	$pdf->Cell(30,10,$jam,1,0,'L');
+	 			$pdf->Cell(10,7,$no,1,0,'C');
+	 			$pdf->Cell(55,7,substr($namaMapel,0,35),1,0,'L');
+	 			$pdf->Cell(45,7,substr($namaGuru,0,28),1,0,'L');
+	 			$pdf->Cell(30,7,substr($namaRuangan,0,18),1,0,'L');
+	 			$pdf->Cell(25,7,$hari,1,0,'C');
+	 			$pdf->Cell(25,7,$jam,1,1,'C');
+	 			$no++;
+	 		}
 
-            	foreach ($days as $day) {
-            		$pdf->Cell(40,10,  $this->getPelajaran($jam, $day, $kelas),1,0,'L');
-            	}
-            	$pdf->Cell(30,10,'',0,1,'L');
-            	$no++;
-        	}
+	 		if (count($rows) < 1)
+	 		{
+	 			$pdf->Cell(190,10,'Tidak ada data jadwal untuk kelas ini.',1,1,'C');
+	 		}
 
-	 		$pdf->Output();
+	 		$pdf->Output('I', 'jadwal_'.$kelas.'.pdf');
 	 	}
 
 	 	function getPelajaran($jam, $hari, $kelas) {

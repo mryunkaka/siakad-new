@@ -37,8 +37,7 @@
           <td colspan="2">
                 <!-- <button type="submit" name="export_jadwal" class="btn btn-success btn-sm"> Naik Kelas</button> -->
                 <?php
-                    
-                    echo anchor('siswa/aksi_naikkelas', '<button class="btn btn-info btn-flat margin">Naik Kelas</button>');
+                    echo '<button type="button" id="btnNaikKelas" class="btn btn-info btn-flat margin">Naik Kelas</button>';
                 ?>
           </td>
         
@@ -87,6 +86,15 @@
 <script type="text/javascript">
     $(document).ready(function(){
         loadKelas();
+    });
+
+    $(document).on('click', '#btnNaikKelas', function(){
+        var kelas = $("#cbkelas").val();
+        if(!kelas){
+            alert('Kelas belum dipilih.');
+            return;
+        }
+        window.location.href = "<?php echo base_url('siswa/aksi_naikkelas?kelas='); ?>" + encodeURIComponent(kelas);
     });
 </script>
 

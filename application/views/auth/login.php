@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="<?php echo base_url('assets/bower_components/bootstrap/dist/css/bootstrap.min.css'); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/bower_components/font-awesome/css/font-awesome.min.css'); ?>">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:300,400,500,600&display=swap" rel="stylesheet">
+    <!-- Google Fonts removed to avoid external stylesheet load failures in offline/blocked environments -->
 
     <style>
         :root{
@@ -23,7 +23,7 @@
         }
 
         body{
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
             margin: 0;
             min-height: 100vh;
             min-height: 100dvh;
@@ -152,10 +152,22 @@
         <small>SDN Rantau Kanan 2</small>
     </div>
 
-    <?php if($this->session->flashdata('error')): ?>
-        <div class="alert-login" id="alertError">
+    <?php
+        $flashError = $this->session->flashdata('error');
+        $flashSuccess = $this->session->flashdata('success');
+        if ($flashError) { $this->session->unset_userdata('error'); }
+        if ($flashSuccess) { $this->session->unset_userdata('success'); }
+    ?>
+
+    <?php if($flashError): ?>
+        <div class="alert-login" id="alertFlash" role="alert" aria-live="polite">
             <i class="fa fa-exclamation-triangle"></i>
-            <?php echo $this->session->flashdata('error'); ?>
+            <?php echo htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8'); ?>
+        </div>
+    <?php elseif($flashSuccess): ?>
+        <div class="alert-login" id="alertFlash" role="alert" aria-live="polite" style="background:rgba(40,167,69,.18);border-color:rgba(40,167,69,.5);color:#d8ffe3;">
+            <i class="fa fa-check-circle"></i>
+            <?php echo htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8'); ?>
         </div>
     <?php endif; ?>
 
@@ -185,12 +197,18 @@
 
 <script>
     setTimeout(function(){
-        var alert=document.getElementById("alertError");
+        var alert=document.getElementById("alertFlash");
         if(alert){
-            alert.style.transition="opacity 0.5s";
+            alert.style.transition="opacity 0.5s, max-height 0.5s, margin 0.5s, padding 0.5s";
             alert.style.opacity="0";
+            alert.style.maxHeight="0";
+            alert.style.margin="0";
+            alert.style.padding="0";
+            setTimeout(function(){
+                if(alert && alert.parentNode){ alert.parentNode.removeChild(alert); }
+            }, 650);
         }
-    },4000);
+    },10000);
 
     function updateClock(){
         const now=new Date();
@@ -213,4 +231,3 @@
 
 </body>
 </html>
-

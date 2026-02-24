@@ -142,28 +142,42 @@
 			echo "</table>";
 		}
 
-		function export_excel()
-		{
-			$this->load->library('CPHP_excel');
-	        $objPHPExcel = new PHPExcel();
-	        $objPHPExcel->getActiveSheet()->setCellValue('A1', 'NIM');
-	        $objPHPExcel->getActiveSheet()->setCellValue('B1', 'SISWA');
-	        
-	        $kelas = $_POST['kelas'];
-	        $this->db->where('kd_kelas', $kelas);
-	        $siswa = $this->db->get('tbl_siswa');
-	        $no=2;
-	        foreach ($siswa->result() as $row){
-	            $objPHPExcel->getActiveSheet()->setCellValue('A'.$no, $row->nim);
-	            $objPHPExcel->getActiveSheet()->setCellValue('B'.$no, $row->nama);
-	            $no++;
-	        }
-	        
-	        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007'); 
-	        $objWriter->save("data-siswa.xlsx");
-	        $this->load->helper('download');
-	        force_download('data-siswa.xlsx', NULL);
-		}
+			function export_excel()
+			{
+				ini_set('display_errors', '0');
+				error_reporting(error_reporting() & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
+				$this->load->library('CPHP_excel');
+		        $objPHPExcel = new PHPExcel();
+		        $objPHPExcel->getActiveSheet()->setCellValue('A1', 'NIM');
+		        $objPHPExcel->getActiveSheet()->setCellValue('B1', 'SISWA');
+
+		        $kelas = $this->input->post('kelas', true);
+		        if (empty($kelas)) {
+		        	$kelas = $this->input->post('kd_kelas', true);
+		        }
+
+		        $this->db->where('kd_kelas', $kelas);
+		        $siswa = $this->db->get('tbl_siswa');
+		        $no=2;
+		        foreach ($siswa->result() as $row){
+		            $objPHPExcel->getActiveSheet()->setCellValue('A'.$no, $row->nim);
+		            $objPHPExcel->getActiveSheet()->setCellValue('B'.$no, $row->nama);
+		            $no++;
+		        }
+
+		        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+
+		        while (ob_get_level() > 0) {
+		        	@ob_end_clean();
+		        }
+		        ob_start();
+		        $objWriter->save('php://output');
+		        $excelData = ob_get_clean();
+
+		        $this->load->helper('download');
+		        force_download('data-siswa.xlsx', $excelData);
+			}
 
 		function nilai_siswa()
 		{
@@ -175,31 +189,10 @@
 			$this->template->load('template', 'siswa/nilai', $data);
 		}
 
-		function form(){
-		    $data = array(); // Buat variabel $data sebagai array
-		    
-		    if(isset($_POST['preview'])){ // Jika user menekan tombol Preview pada form
-		      // lakukan upload file dengan memanggil function upload yang ada di SiswaModel.php
-		      $uploadcsv = $this->model_siswa->upload_csv($this->filename);
-		      
-		      if($uploadcsv['result'] == "success"){ // Jika proses upload sukses
-		        // Load plugin PHPExcel nya
-		        include APPPATH.'third_party/PHPExcel/PHPExcel.php';
-		        
-		        $csvreader = PHPExcel_IOFactory::createReader('CSV');
-		        $loadcsv = $csvreader->load('csv/'.$this->filename.'.csv'); // Load file yang tadi diupload ke folder csv
-		        $sheet = $loadcsv->getActiveSheet()->getRowIterator();
-		        
-		        // Masukan variabel $sheet ke dalam array data yang nantinya akan di kirim ke file form.php
-		        // Variabel $sheet tersebut berisi data-data yang sudah diinput di dalam csv yang sudha di upload sebelumnya
-		        $data['sheet'] = $sheet; 
-		      }else{ // Jika proses upload gagal
-		        $data['upload_error'] = $uploadcsv['error']; // Ambil pesan error uploadnya untuk dikirim ke file form dan ditampilkan
-		      }
-		    }
-		    
-		    $this->load->view('siswa/form', $data);
-		  }
+			function form()
+			{
+				$this->template->load('template', 'siswa/import_excel');
+			}
 
 		  function import(){
 		  	// Load plugin PHPExcel nya
@@ -253,12 +246,17 @@
 		  }
 
 		  function naik_kelas() {
-		  	$this->template->load('template', 'siswa/naik_kelas');
+		  	redirect('naik_kelas');
 		  }
 
 		  function Naiksiswa()
 			{
-				$kelas 	= $_GET['kd_kelas'];
+				$kelas = $this->input->get('kd_kelas', TRUE);
+				if (empty($kelas))
+				{
+					echo "<div class='alert alert-danger'>Kelas belum dipilih.</div>";
+					return;
+				}
 
 				echo "<table class='table table-striped table-bordered table-hover table-full-width dataTable'>
 						<tr>
@@ -278,14 +276,14 @@
 			}
 
 		function aksi_naikkelas() {
-			$kelas 	= $_GET['kelas'];
-			$this->db->where('kd_kelas', $kelas);
-			$siswa = $this->db->get('tbl_siswa');
-			foreach ($siswa->result() as $row) {
-				$nim = $row->nim;
-				print($nim);
+			$kelas = $this->input->get('kelas', TRUE);
+			if (empty($kelas))
+			{
+				$this->session->set_flashdata('error', 'Kelas belum dipilih.');
+				redirect('naik_kelas');
+				return;
 			}
-			//$querynaik = "UPDATE tbl_siswa SET kd_kelas = '8-A1' WHERE NIM = '18SI1000' AND kd_kelas = '$kelas'"
+			redirect('naik_kelas?asal='.rawurlencode($kelas));
 		}
 
 		// function loadDataSiswa()

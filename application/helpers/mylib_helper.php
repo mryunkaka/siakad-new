@@ -56,9 +56,27 @@
 			return;
 		}
 
-		$menu = $ci->db->get_where('tabel_menu', array('link' => $url))->row_array();
-		if (empty($menu) || empty($menu['id']))
+		// Auto-link id_guru untuk role Guru/Wali Kelas (berguna jika session lama belum punya id_guru).
+		$idLevel = (int) $level_User;
+		if (($idLevel === 2 || $idLevel === 3) && (int) $ci->session->userdata('id_guru') <= 0)
 		{
+			$username = (string) $ci->session->userdata('username');
+			if ($username !== '')
+			{
+				$guru = $ci->db->get_where('tbl_guru', array('username' => $username))->row_array();
+				if ( ! empty($guru) && ! empty($guru['id_guru']))
+				{
+					$ci->session->set_userdata(array('id_guru' => (int) $guru['id_guru']));
+				}
+			}
+		}
+
+		$menu = $ci->db->get_where('tabel_menu', array('link' => $url))->row_array();
+		if (empty($menu) || empty($menu['id'])) {
+			// Fallback: jika link method tidak terdaftar, cek akses berdasarkan controller saja.
+			$menu = $ci->db->get_where('tabel_menu', array('link' => $controller))->row_array();
+		}
+		if (empty($menu) || empty($menu['id'])) {
 			// Jika menu belum terdaftar, jangan memblokir agar tidak memunculkan notice.
 			return;
 		}

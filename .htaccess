@@ -1,4 +1,8 @@
 RewriteEngine On
+
+# Serve favicon without routing to CodeIgniter
+RewriteRule ^favicon\.ico$ assets/dist/img/tutwuri.png [L]
+
 RewriteCond %{REQUEST_URI} ^/system.*
 RewriteRule ^(.*)$ index.php?/$1 [L]
 RewriteCond %{REQUEST_FILENAME} !-f

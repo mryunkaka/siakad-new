@@ -7,6 +7,8 @@
 <title>SIAKAD SDN Rantau Kanan 2</title>
 <meta content="width=device-width, initial-scale=1" name="viewport">
 
+<link rel="icon" type="image/png" href="<?php echo base_url('assets/dist/img/tutwuri.png'); ?>">
+
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/bower_components/bootstrap/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/bower_components/font-awesome/css/font-awesome.min.css">
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/bower_components/Ionicons/css/ionicons.min.css">
@@ -15,13 +17,13 @@
 
 <script src="<?php echo base_url(); ?>assets/bower_components/jquery/dist/jquery.min.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Google Fonts removed to avoid external stylesheet load failures in offline/blocked environments -->
 
 <style>
 
 /* ================= GLOBAL ================= */
 body{
-    font-family:'Poppins',sans-serif !important;
+    font-family:'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important;
     background:#f4f6f9;
 }
 
@@ -194,6 +196,13 @@ body{
     color:#fff !important;
 }
 
+.codex-flash-container{
+    padding: 15px 15px 0 15px;
+}
+.codex-flash-container .alert{
+    margin-bottom: 0;
+}
+
 </style>
 
 </head>
@@ -289,7 +298,11 @@ switch($level){
 <ul class="sidebar-menu" data-widget="tree">
 <li class="header">MENU NAVIGASI</li>
 
-<?php $current_controller = $this->uri->segment(1); ?>
+<?php
+	$current_controller = $this->uri->segment(1);
+	$current_method = $this->uri->segment(2);
+	$current_route = $current_controller.(empty($current_method) ? '' : '/'.$current_method);
+?>
 
 <li class="<?php echo ($current_controller == 'tampilan_utama' || $current_controller == '') ? 'active' : ''; ?>">
 <a href="<?php echo site_url('tampilan_utama'); ?>">
@@ -309,16 +322,44 @@ if ($id_level_user > 0)
 	$main_menu = $this->db->query($sql_menu)->result();
 }
 
+// Hide "Laporan Nilai" untuk role Guru yang bukan wali kelas aktif (agar tidak memunculkan error).
+$allow_laporan_nilai = true;
+if ($id_level_user === 3)
+{
+	$allow_laporan_nilai = false;
+	$idGuru = (int) $this->session->userdata('id_guru');
+	if ($idGuru > 0)
+	{
+		$idTahunAkademik = (int) get_tahun_akademik('id_tahun_akademik');
+		$wk = $this->db->get_where('tbl_walikelas', array(
+			'id_guru' => $idGuru,
+			'id_tahun_akademik' => $idTahunAkademik,
+		))->row_array();
+		if ( ! empty($wk) && ! empty($wk['kd_kelas']))
+		{
+			$allow_laporan_nilai = true;
+		}
+	}
+}
+
 foreach ($main_menu as $main){
 
-$submenu = $this->db->get_where('tabel_menu',['is_main_menu'=>$main->id]);
-$is_active = ($current_controller == $main->link) ? 'active' : '';
+if ($main->link === 'laporan_nilai' && ! $allow_laporan_nilai)
+{
+	continue;
+}
+
+$submenu_sql = "SELECT * FROM tabel_menu WHERE is_main_menu = ? AND id IN
+	(SELECT id_menu FROM tbl_user_rule WHERE id_level_user = ?)";
+$submenu = $this->db->query($submenu_sql, array($main->id, $id_level_user));
+
+$is_active = ($current_controller == $main->link || $current_route == $main->link) ? 'active' : '';
 
 if($submenu->num_rows()>0){
 
 $submenu_active='';
 foreach($submenu->result() as $sub){
-if($current_controller == $sub->link){ $submenu_active='active menu-open'; }
+if($current_controller == $sub->link || $current_route == $sub->link){ $submenu_active='active menu-open'; }
 }
 
 echo "<li class='treeview $submenu_active'>";
@@ -331,7 +372,12 @@ echo "<a href='#'>
 
 echo "<ul class='treeview-menu'>";
 foreach($submenu->result() as $sub){
-$sub_active=($current_controller==$sub->link)?'active':'';
+$subLink = $sub->link;
+if ($subLink === 'laporan_nilai' && ! $allow_laporan_nilai)
+{
+	continue;
+}
+$sub_active=($current_controller==$sub->link || $current_route==$sub->link)?'active':'';
 echo "<li class='$sub_active'>".anchor($sub->link,"<i class='".$sub->icon."'></i> ".$sub->nama_menu)."</li>";
 }
 echo "</ul></li>";
@@ -351,6 +397,26 @@ echo "<li class='$is_active'>".anchor($main->link,"<i class='".$main->icon."'></
 <h1>Dashboard <small>Sistem Akademik</small></h1>
 </section>
 
+<?php
+	$error = $this->session->flashdata('error');
+	$success = $this->session->flashdata('success');
+	if ( ! empty($error)) { $this->session->unset_userdata('error'); }
+	if ( ! empty($success)) { $this->session->unset_userdata('success'); }
+	if ( ! empty($error) || ! empty($success))
+	{
+		echo "<div class='codex-flash-container'>";
+		if ( ! empty($error))
+		{
+			echo "<div class='alert alert-danger'>".htmlspecialchars($error, ENT_QUOTES, 'UTF-8')."</div>";
+		}
+		if ( ! empty($success))
+		{
+			echo "<div class='alert alert-success'>".htmlspecialchars($success, ENT_QUOTES, 'UTF-8')."</div>";
+		}
+		echo "</div>";
+	}
+?>
+
 <?php echo $contents; ?>
 
 </div>
@@ -364,6 +430,16 @@ echo "<li class='$is_active'>".anchor($main->link,"<i class='".$main->icon."'></
 <script src="<?php echo base_url(); ?>assets/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 
 <script src="<?php echo base_url(); ?>assets/dist/js/adminlte.min.js"></script>
+
+<script>
+  $(function () {
+    window.setTimeout(function () {
+      $('.alert').not('.alert-important').fadeTo(300, 0).slideUp(300, function () {
+        $(this).remove();
+      });
+    }, 10000);
+  });
+</script>
 
 </body>
 </html>
