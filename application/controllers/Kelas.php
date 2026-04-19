@@ -13,14 +13,7 @@
 
 		function data()
 		{
-			// $sql = "SELECT tk.*, ttk.nama_tingkatan, tj.nama_jurusan 
-			// FROM tbl_kelas AS tk, tbl_tingkatan_kelas AS ttk, tbl_jurusan AS tj 
-			// WHERE tk.kd_tingkatan = ttk.kd_tingkatan AND tk.kd_jurusan = tj.kd_jurusan"
-			// Biasanya menggunakan query untuk mengambil nama dari tabel yang berbeda tapi saling berelasi,
-			// karena terlalu panjang, harus menggunakan foreach lagi dan menurut saya sepertinya 
-			//tidak bisa melakukan foreach di datatable, maka saya menggunaka create view kita bisa membuat query tersebut menjadi sebuah table
-
-			// nama table
+			// nama table / view
 			$table      = 'view_kelas';
 			// nama PK
 			$primaryKey = 'kd_kelas';
